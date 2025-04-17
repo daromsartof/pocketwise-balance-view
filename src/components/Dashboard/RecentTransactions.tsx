@@ -3,6 +3,7 @@ import React from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { ChevronRight, Banknote, CreditCard, Landmark, Smartphone } from 'lucide-react';
 import { PaymentMethod, TransactionType } from '../../types';
+import { Link } from 'react-router-dom';
 
 const RecentTransactions: React.FC = () => {
   const { transactions } = useFinance();
@@ -40,9 +41,9 @@ const RecentTransactions: React.FC = () => {
     <div className="p-4 mb-4 bg-white rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm text-gray-500">Recent Transactions</h2>
-        <a href="/transactions" className="text-xs text-finance-blue font-medium">
+        <Link to="/transactions" className="text-xs text-finance-blue font-medium">
           View All
-        </a>
+        </Link>
       </div>
       
       <div className="space-y-4">

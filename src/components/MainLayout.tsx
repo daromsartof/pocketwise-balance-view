@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
+import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, 
   Bell, 
@@ -107,62 +107,62 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <nav className="p-4 flex-1">
                 <ul className="space-y-3">
                   <li>
-                    <a 
-                      href="/"
+                    <Link 
+                      to="/"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
                       <PieChart size={20} className="mr-3 text-finance-blue" />
                       <span>Dashboard</span>
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a 
-                      href="/transactions"
+                    <Link 
+                      to="/transactions"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
                       <BarChart3 size={20} className="mr-3 text-finance-blue" />
                       <span>Transactions</span>
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a 
-                      href="/budgets"
+                    <Link 
+                      to="/budgets"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
                       <Wallet size={20} className="mr-3 text-finance-blue" />
                       <span>Budgets</span>
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a 
-                      href="/categories"
+                    <Link 
+                      to="/categories"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
                       <Calendar size={20} className="mr-3 text-finance-blue" />
                       <span>Categories</span>
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a 
-                      href="/reports"
+                    <Link 
+                      to="/reports"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
                       <Clock size={20} className="mr-3 text-finance-blue" />
                       <span>Reports</span>
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </nav>
               
               {/* Bottom Settings Link */}
               <div className="p-4 border-t">
-                <a 
-                  href="/settings"
+                <Link 
+                  to="/settings"
                   className="flex items-center p-2 hover:bg-gray-100 rounded"
                 >
                   <Settings size={20} className="mr-3 text-gray-500" />
                   <span>Settings</span>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -176,14 +176,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       
       {/* Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-around">
-        <a href="/add-income" className="w-1/2 h-full flex flex-col items-center justify-center bg-green-500 text-white">
+        <Link to="/transactions" className="w-1/2 h-full flex flex-col items-center justify-center bg-green-500 text-white" onClick={() => setAddingTransaction(TransactionType.INCOME)}>
           <span className="text-xl">+</span>
           <span className="text-xs">Income</span>
-        </a>
-        <a href="/add-expense" className="w-1/2 h-full flex flex-col items-center justify-center bg-red-500 text-white">
+        </Link>
+        <Link to="/transactions" className="w-1/2 h-full flex flex-col items-center justify-center bg-red-500 text-white" onClick={() => setAddingTransaction(TransactionType.EXPENSE)}>
           <span className="text-xl">-</span>
           <span className="text-xs">Expense</span>
-        </a>
+        </Link>
       </div>
     </div>
   );
