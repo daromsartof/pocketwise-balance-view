@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
   Bell, 
@@ -22,6 +23,13 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { accounts, currentAccount, setCurrentAccount, summary } = useFinance();
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  
+  // Add this handler for transaction creation
+  const handleAddTransaction = (type: TransactionType) => {
+    // Navigate to transactions page with state
+    navigate('/transactions', { state: { addingTransaction: type } });
+  };
   
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -176,14 +184,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       
       {/* Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-around">
-        <Link to="/transactions" className="w-1/2 h-full flex flex-col items-center justify-center bg-green-500 text-white" onClick={() => setAddingTransaction(TransactionType.INCOME)}>
+        <button 
+          className="w-1/2 h-full flex flex-col items-center justify-center bg-green-500 text-white"
+          onClick={() => handleAddTransaction(TransactionType.INCOME)}
+        >
           <span className="text-xl">+</span>
           <span className="text-xs">Income</span>
-        </Link>
-        <Link to="/transactions" className="w-1/2 h-full flex flex-col items-center justify-center bg-red-500 text-white" onClick={() => setAddingTransaction(TransactionType.EXPENSE)}>
+        </button>
+        <button 
+          className="w-1/2 h-full flex flex-col items-center justify-center bg-red-500 text-white"
+          onClick={() => handleAddTransaction(TransactionType.EXPENSE)}
+        >
           <span className="text-xl">-</span>
           <span className="text-xs">Expense</span>
-        </Link>
+        </button>
       </div>
     </div>
   );

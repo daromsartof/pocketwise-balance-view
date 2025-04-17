@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFinance, FinanceProvider } from '../context/FinanceContext';
+import { useLocation } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { 
@@ -35,6 +36,16 @@ const TransactionsContent: React.FC = () => {
   const { transactions } = useFinance();
   const [searchText, setSearchText] = useState('');
   const [addingTransaction, setAddingTransaction] = useState<TransactionType | null>(null);
+  const location = useLocation();
+  
+  // Check if we navigated here with the intent to add a transaction
+  useEffect(() => {
+    if (location.state && location.state.addingTransaction) {
+      setAddingTransaction(location.state.addingTransaction);
+      // Clear the state to prevent reopening on route changes
+      history.replaceState({}, document.title);
+    }
+  }, [location]);
   
   // Sort transactions by date (newest first)
   const sortedTransactions = [...transactions]
