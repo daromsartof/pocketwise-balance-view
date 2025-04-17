@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 206 84% 54%;  /* Changed to match finance blue */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -22,7 +22,7 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 45 100% 58%;  /* Changed to match finance yellow */
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -49,6 +49,20 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Finance-specific variables */
+    --finance-income: 122 39% 49%;
+    --finance-expense: 4 90% 58%;
+    --finance-balance: 206 84% 54%;
+    --finance-card-bg: 0 0% 100%;
+    --finance-chart-1: 122 39% 49%;
+    --finance-chart-2: 4 90% 58%;
+    --finance-chart-3: 206 84% 54%;
+    --finance-chart-4: 45 100% 58%;
+    --finance-chart-5: 262 83% 58%;
+    --finance-chart-6: 326 100% 74%;
+    --finance-chart-7: 187 100% 42%;
+    --finance-chart-8: 31 100% 60%;
   }
 
   .dark {
