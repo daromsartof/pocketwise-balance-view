@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useFinance, FinanceProvider } from '../context/FinanceContext';
 import MainLayout from '../components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Category, TransactionType } from '../types';
@@ -8,7 +8,8 @@ import { Plus } from 'lucide-react';
 import CategoryList from '../components/Categories/CategoryList';
 import CategoryForm from '../components/Categories/CategoryForm';
 
-const Categories: React.FC = () => {
+// This component needs to be inside the FinanceProvider
+const CategoriesContent: React.FC = () => {
   const { categories } = useFinance();
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -64,6 +65,15 @@ const Categories: React.FC = () => {
         />
       )}
     </MainLayout>
+  );
+};
+
+// Wrapper component that provides the FinanceContext
+const Categories: React.FC = () => {
+  return (
+    <FinanceProvider>
+      <CategoriesContent />
+    </FinanceProvider>
   );
 };
 
