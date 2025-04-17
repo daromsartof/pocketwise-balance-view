@@ -9,6 +9,8 @@ import BudgetStatus from '../components/Dashboard/BudgetStatus';
 import AddTransaction from '../components/Transactions/AddTransaction';
 import { TransactionType } from '../types';
 import { Calendar, ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const Dashboard: React.FC = () => {
   const [addingTransaction, setAddingTransaction] = useState<TransactionType | null>(null);
@@ -17,12 +19,18 @@ const Dashboard: React.FC = () => {
     <FinanceProvider>
       <MainLayout>
         {/* Date Range Selector */}
-        <div className="p-4 flex items-center justify-center bg-white border-b">
+        <div className="p-4 flex items-center justify-between bg-white border-b">
           <button className="flex items-center text-sm text-gray-700">
             <Calendar size={16} className="mr-2 text-finance-blue" />
             <span>April 2025</span>
             <ChevronDown size={16} className="ml-1 text-gray-500" />
           </button>
+          
+          <Link to="/categories">
+            <Button variant="outline" size="sm">
+              Gérer les catégories
+            </Button>
+          </Link>
         </div>
         
         <div className="p-4">
