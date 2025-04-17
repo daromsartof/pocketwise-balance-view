@@ -2,6 +2,7 @@
 import React from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const BudgetStatus: React.FC = () => {
   const { summary, categories, budgets } = useFinance();
@@ -40,9 +41,9 @@ const BudgetStatus: React.FC = () => {
     <div className="p-4 mb-4 bg-white rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm text-gray-500">Budget Status</h2>
-        <a href="/budgets" className="text-xs text-finance-blue font-medium">
+        <Link to="/budgets" className="text-xs text-finance-blue font-medium">
           View All
-        </a>
+        </Link>
       </div>
       
       <div className="space-y-4">
