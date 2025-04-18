@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MainLayout } from '../components/MainLayout';
+import MainLayout from '../components/MainLayout';
 import {
   Card,
   CardContent,
