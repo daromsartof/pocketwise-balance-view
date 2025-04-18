@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -26,6 +27,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { accounts, currentAccount, setCurrentAccount, summary } = useFinance();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { session } = useAuth();
@@ -33,7 +35,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // Check if screen is large on mount and when window resizes
   useEffect(() => {
     const checkScreenSize = () => {
-      if (window.innerWidth >= 1024) { // lg breakpoint
+      const largScreen = window.innerWidth >= 1024; // lg breakpoint
+      setIsLargeScreen(largScreen);
+      
+      // Only set menuOpen to true on large screens at initial load
+      if (largScreen) {
         setMenuOpen(true);
       }
     };
@@ -97,9 +103,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       
       {/* Side Menu Drawer */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 lg:bg-opacity-0" onClick={() => setMenuOpen(false)}>
+        <div className={`fixed inset-0 z-50 ${isLargeScreen ? 'bg-opacity-0 pointer-events-none' : 'bg-black bg-opacity-30'} lg:bg-opacity-0`} 
+          onClick={() => !isLargeScreen && setMenuOpen(false)}
+        >
           <div 
-            className="absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white shadow-lg transform transition-transform lg:relative lg:w-64 lg:shadow-none lg:translate-x-0"
+            className={`absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white shadow-lg transform transition-transform ${
+              isLargeScreen ? 'lg:relative lg:w-64 lg:shadow-none' : ''
+            }`}
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col h-full">
@@ -131,7 +141,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       }`}
                       onClick={() => {
                         setCurrentAccount(account);
-                        setMenuOpen(false);
+                        if (!isLargeScreen) {
+                          setMenuOpen(false);
+                        }
                       }}
                     >
                       <div className="flex items-center">
@@ -224,9 +236,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       )}
       
+      {/* Conditional rendering of sidebar space only when large screen */}
+      {isLargeScreen && menuOpen && (
+        <div className="hidden lg:block w-64 shrink-0"></div>
+      )}
+      
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20">
-        {children}
+      <main className={`flex-1 overflow-y-auto pb-20 ${isLargeScreen && menuOpen ? 'lg:ml-0' : ''}`}>
+        <div className="flex">
+          {/* This creates space for the sidebar on large screens */}
+          {isLargeScreen && menuOpen && <div className="hidden lg:block w-64 shrink-0"></div>}
+          
+          {/* Actual content */}
+          <div className="flex-1">
+            {children}
+          </div>
+        </div>
       </main>
       
       {/* Bottom Action Bar */}
