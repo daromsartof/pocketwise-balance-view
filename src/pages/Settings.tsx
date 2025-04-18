@@ -18,13 +18,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useFinance } from '../context/FinanceContext';
+import { useFinance, FinanceProvider } from '../context/FinanceContext';
 import { useToast } from '../components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 
-const Settings = () => {
+// This component needs to be inside the FinanceProvider
+const SettingsContent = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { session } = useAuth();
@@ -157,6 +158,15 @@ const Settings = () => {
         </Card>
       </div>
     </MainLayout>
+  );
+};
+
+// Wrapper component that provides the FinanceContext
+const Settings = () => {
+  return (
+    <FinanceProvider>
+      <SettingsContent />
+    </FinanceProvider>
   );
 };
 
