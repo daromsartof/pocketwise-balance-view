@@ -1,22 +1,23 @@
-
 import React, { useState } from 'react';
 import { useFinance, FinanceProvider } from '../context/FinanceContext';
 import MainLayout from '../components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Category, TransactionType } from '../types';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import CategoryList from '../components/Categories/CategoryList';
 import CategoryForm from '../components/Categories/CategoryForm';
 
 // This component needs to be inside the FinanceProvider
 const CategoriesContent: React.FC = () => {
-  const { categories } = useFinance();
+  const { categories, isLoadingCategories } = useFinance();
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [activeType, setActiveType] = useState<TransactionType>(TransactionType.EXPENSE);
 
-  // Filtrer les catégories par type
-  const filteredCategories = categories.filter(c => c.type === activeType);
+  // Filtrer les catégories par type en ignorant la casse
+  const filteredCategories = categories.filter(c => 
+    c.type.toLowerCase() === activeType.toLowerCase()
+  );
 
   return (
     <MainLayout>
@@ -47,10 +48,16 @@ const CategoriesContent: React.FC = () => {
           </button>
         </div>
         
-        <CategoryList 
-          categories={filteredCategories} 
-          onEdit={setEditingCategory} 
-        />
+        {isLoadingCategories ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-finance-blue" />
+          </div>
+        ) : (
+          <CategoryList 
+            categories={filteredCategories} 
+            onEdit={setEditingCategory} 
+          />
+        )}
       </div>
 
       {/* Formulaire d'ajout/modification */}

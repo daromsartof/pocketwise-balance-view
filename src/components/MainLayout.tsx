@@ -239,7 +239,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             {children}
           </div>
           {/* Bottom Action Bar */}
-          <div className="fixed bottom-0 left-64 right-0 h-16 bg-white border-t flex items-center justify-around">
+          <div className={`fixed bottom-0 ${isLargeScreen ? 'left-64' : 'left-0'} right-0 h-16 bg-white border-t flex items-center justify-around`}>
             <button
               className="w-1/2 h-full flex flex-col items-center justify-center bg-green-500 text-white"
               onClick={() => handleAddTransaction(TransactionType.INCOME)}

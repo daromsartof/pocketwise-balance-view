@@ -19,6 +19,7 @@ import {
   getBudgetStatus
 } from '../data/mockData';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/components/AuthProvider';
 
 interface FinanceContextType {
   // Data
@@ -27,6 +28,9 @@ interface FinanceContextType {
   categories: Category[];
   budgets: Budget[];
   summary: FinanceSummary;
+  
+  // Loading states
+  isLoadingCategories: boolean;
   
   // Active states
   currentAccount: Account | null;
@@ -75,11 +79,13 @@ const getLastDayOfMonth = () => {
 };
 
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { session } = useAuth();
   // State initialization
   const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [categories, setCategories] = useState<Category[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>(mockBudgets);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   
   // Active states
   const [currentAccount, setCurrentAccount] = useState<Account | null>(mockAccounts[0]);
@@ -161,38 +167,52 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Fetch categories from Supabase
   useEffect(() => {
     const fetchCategories = async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
+      if (!session?.user?.id) return;
 
-      if (error) {
-        console.error('Error fetching categories:', error);
-        return;
+      setIsLoadingCategories(true);
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('name');
+
+        if (error) {
+          console.error('Error fetching categories:', error);
+          return;
+        }
+
+        const formattedCategories: Category[] = data.map(category => ({
+          id: category.id,
+          name: category.name,
+          icon: category.icon,
+          color: category.color,
+          type: category.type.toUpperCase() as TransactionType
+        }));
+
+        setCategories(formattedCategories);
+      } finally {
+        setIsLoadingCategories(false);
       }
-
-      const formattedCategories: Category[] = data.map(category => ({
-        id: category.id,
-        name: category.name,
-        icon: category.icon,
-        color: category.color,
-        type: category.type.toUpperCase() as TransactionType
-      }));
-
-      setCategories(formattedCategories);
     };
 
     fetchCategories();
-  }, []);
+  }, [session]);
 
   const addCategory = async (categoryData: Omit<Category, 'id'>) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to add categories');
+      return;
+    }
+
     const { data, error } = await supabase
       .from('categories')
       .insert([{
         name: categoryData.name,
         icon: categoryData.icon,
         color: categoryData.color,
-        type: categoryData.type.toLowerCase()
+        type: categoryData.type.toLowerCase(),
+        user_id: session.user.id
       }])
       .select()
       .single();
@@ -214,6 +234,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateCategory = async (updatedCategory: Category) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to update categories');
+      return;
+    }
+
     const { error } = await supabase
       .from('categories')
       .update({
@@ -222,7 +247,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         color: updatedCategory.color,
         type: updatedCategory.type.toLowerCase()
       })
-      .eq('id', updatedCategory.id);
+      .eq('id', updatedCategory.id)
+      .eq('user_id', session.user.id);
 
     if (error) {
       console.error('Error updating category:', error);
@@ -235,6 +261,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deleteCategory = async (id: string) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to delete categories');
+      return;
+    }
+
     // Check if category is in use
     const categoryInUse = transactions.some(t => t.category.id === id) ||
                          budgets.some(b => b.categoryId === id);
@@ -247,7 +278,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const { error } = await supabase
       .from('categories')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', session.user.id);
 
     if (error) {
       console.error('Error deleting category:', error);
@@ -337,6 +369,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         categories,
         budgets,
         summary,
+        isLoadingCategories,
         
         // Active states
         currentAccount,
