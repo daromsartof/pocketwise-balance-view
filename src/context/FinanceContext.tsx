@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   Account, 
@@ -12,7 +11,6 @@ import {
 import { 
   accounts as mockAccounts, 
   budgets as mockBudgets, 
-  categories as mockCategories, 
   transactions as mockTransactions,
   calculateTotalIncome,
   calculateTotalExpense,
@@ -20,6 +18,7 @@ import {
   getCategoryBreakdown,
   getBudgetStatus
 } from '../data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FinanceContextType {
   // Data
@@ -76,10 +75,10 @@ const getLastDayOfMonth = () => {
 };
 
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // State initialization with mock data
+  // State initialization
   const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [categories, setCategories] = useState<Category[]>(mockCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>(mockBudgets);
   
   // Active states
@@ -158,6 +157,105 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       categoryBreakdown,
     });
   }, [transactions, budgets, dateRange]);
+
+  // Fetch categories from Supabase
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return;
+      }
+
+      const formattedCategories: Category[] = data.map(category => ({
+        id: category.id,
+        name: category.name,
+        icon: category.icon,
+        color: category.color,
+        type: category.type.toUpperCase() as TransactionType
+      }));
+
+      setCategories(formattedCategories);
+    };
+
+    fetchCategories();
+  }, []);
+
+  const addCategory = async (categoryData: Omit<Category, 'id'>) => {
+    const { data, error } = await supabase
+      .from('categories')
+      .insert([{
+        name: categoryData.name,
+        icon: categoryData.icon,
+        color: categoryData.color,
+        type: categoryData.type.toLowerCase()
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding category:', error);
+      return;
+    }
+
+    const newCategory: Category = {
+      id: data.id,
+      name: data.name,
+      icon: data.icon,
+      color: data.color,
+      type: data.type.toUpperCase() as TransactionType
+    };
+
+    setCategories(prev => [...prev, newCategory]);
+  };
+
+  const updateCategory = async (updatedCategory: Category) => {
+    const { error } = await supabase
+      .from('categories')
+      .update({
+        name: updatedCategory.name,
+        icon: updatedCategory.icon,
+        color: updatedCategory.color,
+        type: updatedCategory.type.toLowerCase()
+      })
+      .eq('id', updatedCategory.id);
+
+    if (error) {
+      console.error('Error updating category:', error);
+      return;
+    }
+
+    setCategories(prev => 
+      prev.map(c => c.id === updatedCategory.id ? updatedCategory : c)
+    );
+  };
+
+  const deleteCategory = async (id: string) => {
+    // Check if category is in use
+    const categoryInUse = transactions.some(t => t.category.id === id) ||
+                         budgets.some(b => b.categoryId === id);
+    
+    if (categoryInUse) {
+      console.error("Cannot delete category that is in use");
+      return;
+    }
+
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting category:', error);
+      return;
+    }
+    
+    setCategories(prev => prev.filter(c => c.id !== id));
+  };
   
   // CRUD operations
   const addTransaction = (transactionData: Omit<Transaction, 'id'>) => {
@@ -176,33 +274,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   
   const deleteTransaction = (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
-  };
-  
-  const addCategory = (categoryData: Omit<Category, 'id'>) => {
-    const newCategory: Category = {
-      ...categoryData,
-      id: Date.now().toString(),
-    };
-    setCategories(prev => [...prev, newCategory]);
-  };
-  
-  const updateCategory = (updatedCategory: Category) => {
-    setCategories(prev => 
-      prev.map(c => c.id === updatedCategory.id ? updatedCategory : c)
-    );
-  };
-  
-  const deleteCategory = (id: string) => {
-    // Ensure no transactions or budgets use this category before deleting
-    const categoryInUse = transactions.some(t => t.category.id === id) ||
-                           budgets.some(b => b.categoryId === id);
-    
-    if (categoryInUse) {
-      console.error("Cannot delete category that is in use");
-      return;
-    }
-    
-    setCategories(prev => prev.filter(c => c.id !== id));
   };
   
   const addBudget = (budgetData: Omit<Budget, 'id'>) => {
