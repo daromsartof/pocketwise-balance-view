@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Bell, 
-  ChevronDown, 
-  Menu, 
+import {
+  ArrowLeft,
+  Bell,
+  ChevronDown,
+  Menu,
   BarChart3,
   PieChart,
   Clock,
@@ -31,13 +31,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { session } = useAuth();
-  
+
   // Check if screen is large on mount and when window resizes
   useEffect(() => {
     const checkScreenSize = () => {
       const largScreen = window.innerWidth >= 1024; // lg breakpoint
       setIsLargeScreen(largScreen);
-      
+
       // Only set menuOpen to true on large screens at initial load
       if (largScreen) {
         setMenuOpen(true);
@@ -53,7 +53,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     // Cleanup
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
-  
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -76,7 +76,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     // Navigate to transactions page with state
     navigate('/transactions', { state: { addingTransaction: type } });
   };
-  
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Top Header */}
@@ -100,19 +100,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
       </header>
-      
+
       {/* Side Menu Drawer */}
       {menuOpen && (
-        <div className={`fixed inset-0 z-50 ${isLargeScreen ? 'bg-opacity-0 pointer-events-none' : 'bg-black bg-opacity-30'} lg:bg-opacity-0`} 
-          onClick={() => !isLargeScreen && setMenuOpen(false)}
-        >
-          <div 
-            className={`absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white shadow-lg transform transition-transform ${
-              isLargeScreen ? 'lg:relative lg:w-64 lg:shadow-none' : ''
-            }`}
-            onClick={e => e.stopPropagation()}
+        <div className={`fixed z-50 bg-black bg-opacity-30 lg:bg-opacity-0`} >
+          <div
+            className={`absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white shadow-lg transform transition-transform ${isLargeScreen ? 'lg:relative lg:w-64 lg:shadow-none' : ''
+              }`}
           >
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full" style={{ overflow: "scroll", maxHeight: "100vh" }}>
               {/* Menu Header with Account Balance */}
               <div className="bg-finance-blue text-white p-5">
                 <h2 className="text-lg mb-3">Balance</h2>
@@ -128,26 +124,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Account Selector */}
               <div className="p-4 border-b">
                 <h3 className="text-sm text-gray-500 mb-2">Accounts</h3>
                 <div className="space-y-2">
                   {accounts.map(account => (
-                    <button 
+                    <button
                       key={account.id}
-                      className={`flex items-center justify-between w-full p-2 rounded ${
-                        currentAccount?.id === account.id ? 'bg-blue-50' : ''
-                      }`}
+                      className={`flex items-center justify-between w-full p-2 rounded ${currentAccount?.id === account.id ? 'bg-blue-50' : ''
+                        }`}
                       onClick={() => {
                         setCurrentAccount(account);
-                        if (!isLargeScreen) {
-                          setMenuOpen(false);
-                        }
                       }}
                     >
                       <div className="flex items-center">
-                        <div 
+                        <div
                           className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
                           style={{ backgroundColor: account.color }}
                         >
@@ -162,12 +154,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   ))}
                 </div>
               </div>
-              
+
               {/* Navigation Links */}
               <nav className="p-4 flex-1">
                 <ul className="space-y-3">
                   <li>
-                    <Link 
+                    <Link
                       to="/"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
@@ -176,7 +168,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </Link>
                   </li>
                   <li>
-                    <Link 
+                    <Link
                       to="/transactions"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
@@ -185,7 +177,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </Link>
                   </li>
                   <li>
-                    <Link 
+                    <Link
                       to="/budgets"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
@@ -194,7 +186,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </Link>
                   </li>
                   <li>
-                    <Link 
+                    <Link
                       to="/categories"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
@@ -203,7 +195,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </Link>
                   </li>
                   <li>
-                    <Link 
+                    <Link
                       to="/reports"
                       className="flex items-center p-2 hover:bg-gray-100 rounded"
                     >
@@ -213,17 +205,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </li>
                 </ul>
               </nav>
-              
+
               {/* Bottom Settings and Logout Links */}
               <div className="p-4 border-t">
-                <Link 
+                <Link
                   to="/settings"
                   className="flex items-center p-2 hover:bg-gray-100 rounded mb-2"
                 >
                   <Settings size={20} className="mr-3 text-gray-500" />
                   <span>Settings</span>
                 </Link>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="flex items-center w-full p-2 hover:bg-gray-100 rounded text-red-600"
                 >
@@ -235,42 +227,38 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </div>
       )}
-      
-      {/* Conditional rendering of sidebar space only when large screen */}
-      {isLargeScreen && menuOpen && (
-        <div className="hidden lg:block w-64 shrink-0"></div>
-      )}
-      
+
       {/* Main Content */}
-      <main className={`flex-1 overflow-y-auto pb-20 ${isLargeScreen && menuOpen ? 'lg:ml-0' : ''}`}>
+      <main className={`flex-1 overflow-y-auto pb-20`}>
         <div className="flex">
           {/* This creates space for the sidebar on large screens */}
           {isLargeScreen && menuOpen && <div className="hidden lg:block w-64 shrink-0"></div>}
-          
+
           {/* Actual content */}
           <div className="flex-1">
             {children}
           </div>
+          {/* Bottom Action Bar */}
+          <div className="fixed bottom-0 left-64 right-0 h-16 bg-white border-t flex items-center justify-around">
+            <button
+              className="w-1/2 h-full flex flex-col items-center justify-center bg-green-500 text-white"
+              onClick={() => handleAddTransaction(TransactionType.INCOME)}
+            >
+              <span className="text-xl">+</span>
+              <span className="text-xs">Income</span>
+            </button>
+            <button
+              className="w-1/2 h-full flex flex-col items-center justify-center bg-red-500 text-white"
+              onClick={() => handleAddTransaction(TransactionType.EXPENSE)}
+            >
+              <span className="text-xl">-</span>
+              <span className="text-xs">Expense</span>
+            </button>
+          </div>
         </div>
       </main>
-      
-      {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t flex items-center justify-around">
-        <button 
-          className="w-1/2 h-full flex flex-col items-center justify-center bg-green-500 text-white"
-          onClick={() => handleAddTransaction(TransactionType.INCOME)}
-        >
-          <span className="text-xl">+</span>
-          <span className="text-xs">Income</span>
-        </button>
-        <button 
-          className="w-1/2 h-full flex flex-col items-center justify-center bg-red-500 text-white"
-          onClick={() => handleAddTransaction(TransactionType.EXPENSE)}
-        >
-          <span className="text-xl">-</span>
-          <span className="text-xs">Expense</span>
-        </button>
-      </div>
+
+
     </div>
   );
 };
