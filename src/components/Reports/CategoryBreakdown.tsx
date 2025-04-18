@@ -180,7 +180,11 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ title, data }) => {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value) => `$${value.toFixed(2)}`} 
+                      formatter={(value: any) => {
+                        return typeof value === 'number' 
+                          ? `$${value.toFixed(2)}` 
+                          : value;
+                      }} 
                       labelFormatter={(name) => `Category: ${name}`}
                     />
                   </PieChart>
@@ -205,8 +209,12 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ title, data }) => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" tickFormatter={(value) => `$${value}`} />
                     <YAxis type="category" dataKey="name" />
-                    <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
-                    <Bar dataKey="value" nameKey="name">
+                    <Tooltip formatter={(value: any) => {
+                      return typeof value === 'number' 
+                        ? `$${value.toFixed(2)}` 
+                        : value;
+                    }} />
+                    <Bar dataKey="value">
                       {data.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
