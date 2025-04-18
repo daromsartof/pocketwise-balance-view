@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -12,9 +11,13 @@ import {
   Clock,
   Calendar,
   Wallet,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react';
 import { TransactionType } from '../types';
+import { useAuth } from '../components/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from './ui/use-toast';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -24,7 +27,44 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { accounts, currentAccount, setCurrentAccount, summary } = useFinance();
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { session } = useAuth();
   
+  // Check if screen is large on mount and when window resizes
+  useEffect(() => {
+    const checkScreenSize = () => {
+      if (window.innerWidth >= 1024) { // lg breakpoint
+        setMenuOpen(true);
+      }
+    };
+
+    // Initial check
+    checkScreenSize();
+
+    // Add event listener
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+  
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been disconnected from your account",
+      });
+      navigate('/auth');
+    } catch (error) {
+      toast({
+        title: "Error logging out",
+        description: "An error occurred while trying to log out",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Add this handler for transaction creation
   const handleAddTransaction = (type: TransactionType) => {
     // Navigate to transactions page with state
@@ -36,7 +76,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       {/* Top Header */}
       <header className="bg-finance-blue py-4 px-5 text-white flex items-center justify-between">
         <div className="flex items-center">
-          <button onClick={() => setMenuOpen(!menuOpen)} className="mr-3">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="mr-3 lg:hidden">
             <Menu size={24} />
           </button>
           <div className="flex items-center">
@@ -57,9 +97,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       
       {/* Side Menu Drawer */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30" onClick={() => setMenuOpen(false)}>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 lg:bg-opacity-0" onClick={() => setMenuOpen(false)}>
           <div 
-            className="absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white shadow-lg transform transition-transform"
+            className="absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white shadow-lg transform transition-transform lg:relative lg:w-64 lg:shadow-none lg:translate-x-0"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col h-full">
@@ -162,15 +202,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </ul>
               </nav>
               
-              {/* Bottom Settings Link */}
+              {/* Bottom Settings and Logout Links */}
               <div className="p-4 border-t">
                 <Link 
                   to="/settings"
-                  className="flex items-center p-2 hover:bg-gray-100 rounded"
+                  className="flex items-center p-2 hover:bg-gray-100 rounded mb-2"
                 >
                   <Settings size={20} className="mr-3 text-gray-500" />
                   <span>Settings</span>
                 </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="flex items-center w-full p-2 hover:bg-gray-100 rounded text-red-600"
+                >
+                  <LogOut size={20} className="mr-3" />
+                  <span>Disconnect</span>
+                </button>
               </div>
             </div>
           </div>
