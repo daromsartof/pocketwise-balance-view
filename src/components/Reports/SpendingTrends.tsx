@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -38,6 +38,8 @@ interface SpendingTrendsProps {
 
 const SpendingTrends: React.FC<SpendingTrendsProps> = ({ dateRange }) => {
   const { transactions } = useFinance();
+  const [chartType, setChartType] = useState<'line' | 'bar'>('line');
+  const [timeInterval, setTimeInterval] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   
   // Filter transactions by date range
   const filteredTransactions = transactions.filter(t => 
@@ -135,6 +137,20 @@ const SpendingTrends: React.FC<SpendingTrendsProps> = ({ dateRange }) => {
       };
     });
   }, [filteredTransactions, dateRange]);
+
+  // Get the appropriate data based on selected time interval
+  const getData = () => {
+    switch (timeInterval) {
+      case 'daily':
+        return dailyData;
+      case 'weekly':
+        return weeklyData;
+      case 'monthly':
+        return monthlyData;
+      default:
+        return dailyData;
+    }
+  };
   
   return (
     <Card>
@@ -142,102 +158,76 @@ const SpendingTrends: React.FC<SpendingTrendsProps> = ({ dateRange }) => {
         <CardTitle>Spending Trends</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="line">
-          <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <Tabs value={chartType} onValueChange={(value) => setChartType(value as 'line' | 'bar')}>
             <TabsList>
               <TabsTrigger value="line">Line Chart</TabsTrigger>
               <TabsTrigger value="bar">Bar Chart</TabsTrigger>
             </TabsList>
-            
-            <Tabs defaultValue="daily" className="w-auto">
-              <TabsList>
-                <TabsTrigger value="daily">Daily</TabsTrigger>
-                <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="daily">
-                <ChartRenderer chartType="line" data={dailyData} />
-                <ChartRenderer chartType="bar" data={dailyData} />
-              </TabsContent>
-              
-              <TabsContent value="weekly">
-                <ChartRenderer chartType="line" data={weeklyData} />
-                <ChartRenderer chartType="bar" data={weeklyData} />
-              </TabsContent>
-              
-              <TabsContent value="monthly">
-                <ChartRenderer chartType="line" data={monthlyData} />
-                <ChartRenderer chartType="bar" data={monthlyData} />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </Tabs>
+          </Tabs>
+          
+          <Tabs value={timeInterval} onValueChange={(value) => setTimeInterval(value as 'daily' | 'weekly' | 'monthly')}>
+            <TabsList>
+              <TabsTrigger value="daily">Daily</TabsTrigger>
+              <TabsTrigger value="weekly">Weekly</TabsTrigger>
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        
+        <div className="h-[400px] mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            {chartType === 'line' ? (
+              <LineChart data={getData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="income" 
+                  name="Income" 
+                  stroke="#8BC34A" 
+                  strokeWidth={2} 
+                  dot={{ r: 4 }} 
+                  activeDot={{ r: 6 }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="expense" 
+                  name="Expense" 
+                  stroke="#FF5252" 
+                  strokeWidth={2} 
+                  dot={{ r: 4 }} 
+                  activeDot={{ r: 6 }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="net" 
+                  name="Net" 
+                  stroke="#03A9F4" 
+                  strokeWidth={2} 
+                  dot={{ r: 4 }} 
+                  activeDot={{ r: 6 }} 
+                />
+              </LineChart>
+            ) : (
+              <BarChart data={getData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                <Legend />
+                <Bar dataKey="income" name="Income" fill="#8BC34A" />
+                <Bar dataKey="expense" name="Expense" fill="#FF5252" />
+                <Bar dataKey="net" name="Net" fill="#03A9F4" />
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
-  );
-};
-
-interface ChartRendererProps {
-  chartType: 'line' | 'bar';
-  data: any[];
-}
-
-const ChartRenderer: React.FC<ChartRendererProps> = ({ chartType, data }) => {
-  return (
-    <TabsContent value={chartType} className="mt-0">
-      <div className="h-[400px] mt-4">
-        <ResponsiveContainer width="100%" height="100%">
-          {chartType === 'line' ? (
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip formatter={(value) => `$${value}`} />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="income" 
-                name="Income" 
-                stroke="#8BC34A" 
-                strokeWidth={2} 
-                dot={{ r: 4 }} 
-                activeDot={{ r: 6 }} 
-              />
-              <Line 
-                type="monotone" 
-                dataKey="expense" 
-                name="Expense" 
-                stroke="#FF5252" 
-                strokeWidth={2} 
-                dot={{ r: 4 }} 
-                activeDot={{ r: 6 }} 
-              />
-              <Line 
-                type="monotone" 
-                dataKey="net" 
-                name="Net" 
-                stroke="#03A9F4" 
-                strokeWidth={2} 
-                dot={{ r: 4 }} 
-                activeDot={{ r: 6 }} 
-              />
-            </LineChart>
-          ) : (
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip formatter={(value) => `$${value}`} />
-              <Legend />
-              <Bar dataKey="income" name="Income" fill="#8BC34A" />
-              <Bar dataKey="expense" name="Expense" fill="#FF5252" />
-              <Bar dataKey="net" name="Net" fill="#03A9F4" />
-            </BarChart>
-          )}
-        </ResponsiveContainer>
-      </div>
-    </TabsContent>
   );
 };
 

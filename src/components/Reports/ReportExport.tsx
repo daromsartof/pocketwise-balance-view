@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useFinance } from '../../context/FinanceContext';
-import { File, FileSpreadsheet, FilePdf, Calendar } from 'lucide-react';
+import { File, FileSpreadsheet, FileText, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ReportExport: React.FC = () => {
@@ -47,7 +47,7 @@ const ReportExport: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="bg-muted/50">
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <FilePdf className="h-8 w-8 mb-2 text-red-500" />
+              <FileText className="h-8 w-8 mb-2 text-red-500" />
               <h3 className="font-medium">PDF Report</h3>
               <p className="text-xs text-muted-foreground mb-3">Complete report with charts and AI insights</p>
               <Button variant="default" size="sm" onClick={() => handleExport('pdf')}>
