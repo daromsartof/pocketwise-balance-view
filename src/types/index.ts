@@ -1,7 +1,7 @@
 
 export enum TransactionType {
-  INCOME = "income",
-  EXPENSE = "expense"
+  INCOME = "INCOME",
+  EXPENSE = "EXPENSE"
 }
 
 export enum PaymentMethod {

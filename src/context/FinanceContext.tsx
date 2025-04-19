@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   Account, 
@@ -31,6 +32,7 @@ interface FinanceContextType {
   
   // Loading states
   isLoadingCategories: boolean;
+  isLoadingBudgets: boolean;
   
   // Active states
   currentAccount: Account | null;
@@ -84,8 +86,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>(mockBudgets);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const [isLoadingBudgets, setIsLoadingBudgets] = useState(false);
   
   // Active states
   const [currentAccount, setCurrentAccount] = useState<Account | null>(mockAccounts[0]);
@@ -176,7 +179,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           .select('*')
           .eq('user_id', session.user.id)
           .order('name');
-
+        
         if (error) {
           console.error('Error fetching categories:', error);
           return;
@@ -189,7 +192,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           color: category.color,
           type: category.type.toUpperCase() as TransactionType
         }));
-
+        console.log("formattedCategories ", formattedCategories)
+        
         setCategories(formattedCategories);
       } finally {
         setIsLoadingCategories(false);
@@ -197,6 +201,42 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     fetchCategories();
+  }, [session]);
+
+  // Fetch budgets from Supabase
+  useEffect(() => {
+    const fetchBudgets = async () => {
+      if (!session?.user?.id) return;
+
+      setIsLoadingBudgets(true);
+      try {
+        const { data, error } = await supabase
+          .from('budgets')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching budgets:', error);
+          return;
+        }
+
+        const formattedBudgets: Budget[] = data.map(budget => ({
+          id: budget.id,
+          categoryId: budget.category_id,
+          amount: budget.amount,
+          period: budget.period,
+          startDate: new Date(budget.start_date),
+          endDate: budget.end_date ? new Date(budget.end_date) : undefined
+        }));
+
+        setBudgets(formattedBudgets);
+      } finally {
+        setIsLoadingBudgets(false);
+      }
+    };
+
+    fetchBudgets();
   }, [session]);
 
   const addCategory = async (categoryData: Omit<Category, 'id'>) => {
@@ -308,21 +348,87 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setTransactions(prev => prev.filter(t => t.id !== id));
   };
   
-  const addBudget = (budgetData: Omit<Budget, 'id'>) => {
+  const addBudget = async (budgetData: Omit<Budget, 'id'>) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to add budgets');
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('budgets')
+      .insert({
+        category_id: budgetData.categoryId,
+        amount: budgetData.amount,
+        period: budgetData.period,
+        start_date: budgetData.startDate.toISOString().split('T')[0],
+        end_date: budgetData.endDate?.toISOString().split('T')[0],
+        user_id: session.user.id
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding budget:', error);
+      return;
+    }
+
     const newBudget: Budget = {
-      ...budgetData,
-      id: Date.now().toString(),
+      id: data.id,
+      categoryId: data.category_id,
+      amount: data.amount,
+      period: data.period,
+      startDate: new Date(data.start_date),
+      endDate: data.end_date ? new Date(data.end_date) : undefined
     };
+
     setBudgets(prev => [...prev, newBudget]);
   };
   
-  const updateBudget = (updatedBudget: Budget) => {
+  const updateBudget = async (updatedBudget: Budget) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to update budgets');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('budgets')
+      .update({
+        category_id: updatedBudget.categoryId,
+        amount: updatedBudget.amount,
+        period: updatedBudget.period,
+        start_date: updatedBudget.startDate.toISOString().split('T')[0],
+        end_date: updatedBudget.endDate?.toISOString().split('T')[0]
+      })
+      .eq('id', updatedBudget.id)
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Error updating budget:', error);
+      return;
+    }
+
     setBudgets(prev => 
       prev.map(b => b.id === updatedBudget.id ? updatedBudget : b)
     );
   };
   
-  const deleteBudget = (id: string) => {
+  const deleteBudget = async (id: string) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to delete budgets');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('budgets')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Error deleting budget:', error);
+      return;
+    }
+    
     setBudgets(prev => prev.filter(b => b.id !== id));
   };
   
@@ -370,6 +476,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         budgets,
         summary,
         isLoadingCategories,
+        isLoadingBudgets,
         
         // Active states
         currentAccount,

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useFinance } from '../../context/FinanceContext';
 import { Budget, TransactionType } from '../../types';
@@ -17,6 +16,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 
 interface BudgetFormProps {
   existingBudget: Budget | null;
@@ -42,6 +42,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
 }) => {
   const { categories, addBudget, updateBudget } = useFinance();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter for expense categories only
   const expenseCategories = categories.filter(
@@ -76,8 +77,9 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
     return `${year}-${month}-${day}`;
   }
 
-  const onSubmit = (data: BudgetFormValues) => {
+  const onSubmit = async (data: BudgetFormValues) => {
     try {
+      setIsSubmitting(true);
       const budgetData = {
         categoryId: data.categoryId,
         amount: data.amount,
@@ -87,13 +89,13 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
       };
 
       if (existingBudget) {
-        updateBudget({ ...budgetData, id: existingBudget.id });
+        await updateBudget({ ...budgetData, id: existingBudget.id });
         toast({
           title: "Budget updated",
           description: "Budget has been successfully updated",
         });
       } else {
-        addBudget(budgetData);
+        await addBudget(budgetData);
         toast({
           title: "Budget created",
           description: "New budget has been created successfully",
@@ -108,6 +110,8 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
         description: "There was a problem saving the budget",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -215,11 +219,26 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
             />
 
             <div className="flex justify-end space-x-3 pt-4">
-              <Button type="button" variant="outline" onClick={onCancel}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button type="submit">
-                {existingBudget ? 'Update Budget' : 'Create Budget'}
+              <Button 
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {existingBudget ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  existingBudget ? 'Update Budget' : 'Create Budget'
+                )}
               </Button>
             </div>
           </form>

@@ -42,6 +42,55 @@ export type Database = {
         }
         Relationships: []
       }
+      budgets: {
+        Row: {
+          id: string
+          user_id: string
+          category_id: string
+          amount: number
+          period: 'daily' | 'weekly' | 'monthly' | 'yearly'
+          start_date: string
+          end_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          category_id: string
+          amount: number
+          period: 'daily' | 'weekly' | 'monthly' | 'yearly'
+          start_date: string
+          end_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          category_id?: string
+          amount?: number
+          period?: 'daily' | 'weekly' | 'monthly' | 'yearly'
+          start_date?: string
+          end_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_category_id_fkey"
+            columns: ["category_id"]
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

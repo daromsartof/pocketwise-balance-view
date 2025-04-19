@@ -1,15 +1,14 @@
-
 import React, { useState } from 'react';
 import { useFinance, FinanceProvider } from '../context/FinanceContext';
 import MainLayout from '../components/MainLayout';
 import { BudgetList } from '../components/Budgets/BudgetList';
 import { BudgetForm } from '../components/Budgets/BudgetForm';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Budget } from '../types';
 
 const BudgetsContent = () => {
-  const { budgets } = useFinance();
+  const { budgets, isLoadingBudgets } = useFinance();
   const [isAddingBudget, setIsAddingBudget] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
 
@@ -51,7 +50,11 @@ const BudgetsContent = () => {
           )}
         </div>
 
-        {isAddingBudget ? (
+        {isLoadingBudgets ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : isAddingBudget ? (
           <BudgetForm 
             existingBudget={editingBudget} 
             onCancel={handleClose} 

@@ -1,12 +1,11 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { 
   Card, 
   CardContent
 } from '@/components/ui/card';
 import { Budget } from '../../types';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,6 +17,7 @@ interface BudgetListProps {
 export const BudgetList: React.FC<BudgetListProps> = ({ budgets, onEdit }) => {
   const { categories, deleteBudget } = useFinance();
   const { toast } = useToast();
+  const [deletingBudgetId, setDeletingBudgetId] = useState<string | null>(null);
 
   // Format date to readable string
   const formatDate = (date: Date) => {
@@ -34,12 +34,23 @@ export const BudgetList: React.FC<BudgetListProps> = ({ budgets, onEdit }) => {
     return capitalized;
   };
 
-  const handleDelete = (budget: Budget) => {
-    deleteBudget(budget.id);
-    toast({
-      title: "Budget deleted",
-      description: "Budget has been successfully deleted",
-    });
+  const handleDelete = async (budget: Budget) => {
+    try {
+      setDeletingBudgetId(budget.id);
+      await deleteBudget(budget.id);
+      toast({
+        title: "Budget deleted",
+        description: "Budget has been successfully deleted",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete budget",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingBudgetId(null);
+    }
   };
 
   if (budgets.length === 0) {
@@ -54,6 +65,7 @@ export const BudgetList: React.FC<BudgetListProps> = ({ budgets, onEdit }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {budgets.map((budget) => {
         const category = categories.find(c => c.id === budget.categoryId);
+        const isDeleting = deletingBudgetId === budget.id;
         
         return (
           <Card key={budget.id} className="overflow-hidden">
@@ -75,6 +87,7 @@ export const BudgetList: React.FC<BudgetListProps> = ({ budgets, onEdit }) => {
                     size="icon" 
                     onClick={() => onEdit(budget)}
                     className="h-8 w-8"
+                    disabled={isDeleting}
                   >
                     <Edit size={16} />
                   </Button>
@@ -83,8 +96,13 @@ export const BudgetList: React.FC<BudgetListProps> = ({ budgets, onEdit }) => {
                     size="icon" 
                     onClick={() => handleDelete(budget)}
                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    disabled={isDeleting}
                   >
-                    <Trash2 size={16} />
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
                   </Button>
                 </div>
               </div>
