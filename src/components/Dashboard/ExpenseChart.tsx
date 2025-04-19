@@ -30,6 +30,8 @@ const ExpenseChart: React.FC = () => {
   const chartData = Array.from(categoryMap.entries())
     .map(([categoryId, amount]) => {
       const category = categories.find(c => c.id === categoryId);
+      console.log("categories ", categories, category)
+      
       return {
         name: category ? category.name : 'Unknown',
         value: amount,

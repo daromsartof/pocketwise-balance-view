@@ -10,7 +10,7 @@ const RecentTransactions: React.FC = () => {
   
   // Sort transactions by date (newest first) and take the 5 most recent
   const recentTransactions = [...transactions]
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
   
   const getPaymentMethodIcon = (method: PaymentMethod) => {
@@ -29,8 +29,8 @@ const RecentTransactions: React.FC = () => {
     }
   };
   
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric',
       year: 'numeric'

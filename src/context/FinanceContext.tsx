@@ -122,7 +122,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     // Filter transactions for the selected date range
     const filteredTransactions = transactions.filter(
-      t => t.date >= dateRange.startDate && t.date <= dateRange.endDate
+      t => new Date(t.date) >= dateRange.startDate && new Date(t.date) <= dateRange.endDate
     );
     
     // Calculate totals
@@ -138,7 +138,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     previousEndDate.setDate(previousEndDate.getDate() - 1);
     
     const previousTransactions = transactions.filter(
-      t => t.date >= previousStartDate && t.date <= previousEndDate
+      t => new Date(t.date) >= previousStartDate && new Date(t.date) <= previousEndDate
     );
     const previousBalance = calculateBalance(previousTransactions);
     
