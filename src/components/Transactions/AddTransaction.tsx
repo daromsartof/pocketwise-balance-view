@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { 
@@ -18,67 +17,111 @@ interface AddTransactionProps {
 }
 
 const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
-  const { categories, accounts, addTransaction } = useFinance();
+  const { categories, addTransaction } = useFinance();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState(PaymentMethod.CASH);
-  const [date, setDate] = useState(new Date());
+  const [categoryId, setCategoryId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
   const [recurring, setRecurring] = useState(false);
   const [recurringInterval, setRecurringInterval] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
-  
+    console.log("type ", type)
+    
   // Filter categories by type
   const filteredCategories = categories.filter(c => c.type === type);
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  console.log("filteredCategories ", filteredCategories)
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const selectedCategory = categories.find(c => c.id === category);
-    if (!selectedCategory) return;
+    if (!categoryId) {
+      alert('Veuillez sélectionner une catégorie');
+      return;
+    }
     
-    const newTransaction = {
-      amount: parseFloat(amount),
-      description,
-      category: selectedCategory,
-      date,
-      paymentMethod,
-      recurring,
-      recurringInterval: recurring ? recurringInterval : undefined,
-      notes: notes || undefined,
-      receiptImage: undefined, // For a real app, this would be handled by an image upload
-    };
+    const selectedCategory = categories.find(c => c.id === categoryId);
+    console.log("selectedCategory ", selectedCategory)
+    if (!selectedCategory) {
+      alert('Catégorie non trouvée');
+      return;
+    }
     
-    addTransaction(newTransaction);
-    onClose();
+    try {
+    console.log({
+    amount: parseFloat(amount),
+        description,
+        category_id: categoryId,
+        date,
+        paymentMethod,
+        recurring,
+        recurringInterval: recurring ? recurringInterval : undefined,
+        notes: notes || undefined,
+        receiptImage: undefined})
+    
+      await addTransaction({
+        amount: parseFloat(amount),
+        description,
+        category: selectedCategory,
+        date: new Date(date).toISOString(),
+        paymentMethod,
+        recurring,
+        recurringInterval: recurring ? recurringInterval : undefined,
+        notes: notes || undefined,
+        receiptImage: undefined
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la transaction:', error);
+      alert('Une erreur est survenue lors de l\'ajout de la transaction');
+    }
   };
   
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     });
   };
   
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('fr-FR', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: false
     });
   };
   
   const handleDateSelect = () => {
-    // In a real app, this would open a date picker
-    // For now, we'll just set it to today
-    setDate(new Date());
+    const input = document.createElement('input');
+    input.type = 'date';
+    input.value = date;
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      setDate(target.value);
+    };
+    input.click();
   };
   
   const handleTimeSelect = () => {
-    // In a real app, this would open a time picker
-    // For now, we'll just set it to now
-    setDate(new Date());
+    const input = document.createElement('input');
+    input.type = 'time';
+    input.value = new Date(date).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      const [hours, minutes] = target.value.split(':');
+      const newDate = new Date(date);
+      newDate.setHours(parseInt(hours), parseInt(minutes));
+      setDate(newDate.toISOString().split('T')[0]);
+    };
+    input.click();
   };
   
   return (
@@ -91,7 +134,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
           <ArrowLeft size={24} />
         </button>
         <h1 className="font-semibold text-lg">
-          Add {type === TransactionType.INCOME ? 'Income' : 'Expense'}
+          Ajouter {type === TransactionType.INCOME ? 'un revenu' : 'une dépense'}
         </h1>
       </header>
       
@@ -102,10 +145,10 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
             <label className={`block mb-2 text-sm font-medium ${
               type === TransactionType.INCOME ? 'text-green-600' : 'text-red-600'
             }`}>
-              {type === TransactionType.INCOME ? 'Income' : 'Expense'}
+              {type === TransactionType.INCOME ? 'Revenu' : 'Dépense'}
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">€</span>
               <input
                 type="number"
                 className="w-full p-3 pl-8 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -121,7 +164,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
               >
                 <span className="text-xs py-1 px-2 bg-gray-100 rounded">
-                  USD
+                  EUR
                 </span>
               </button>
             </div>
@@ -130,61 +173,44 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
           {/* Category Selection */}
           <div className="mb-6">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Category
+              Catégorie
             </label>
-            <button
-              type="button"
-              className="w-full flex items-center justify-between p-3 border rounded-lg"
-              onClick={() => {
-                // In a real app, this would open a category selector
-                if (filteredCategories.length > 0) {
-                  setCategory(filteredCategories[0].id);
-                }
-              }}
+            <select
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              required
             >
-              <div className="flex items-center">
-                {category ? (
-                  <>
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
-                      style={{ 
-                        backgroundColor: filteredCategories.find(c => c.id === category)?.color || '#999' 
-                      }}
-                    >
-                      <span className="text-white text-xs">
-                        {filteredCategories.find(c => c.id === category)?.name.charAt(0) || '?'}
-                      </span>
-                    </div>
-                    <span>{filteredCategories.find(c => c.id === category)?.name || 'Select Category'}</span>
-                  </>
-                ) : (
-                  <span className="text-gray-500">Select Category</span>
-                )}
-              </div>
-              <ChevronRight size={18} className="text-gray-400" />
-            </button>
+              <option value="">Sélectionner une catégorie</option>
+              {filteredCategories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
           
           {/* Payment Method */}
           <div className="mb-6">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Payment Method
+              Mode de paiement
             </label>
-            <button
-              type="button"
-              className="w-full flex items-center justify-between p-3 border rounded-lg"
-              onClick={() => {
-                // In a real app, this would open a payment method selector
-                // Cycle through payment methods for demonstration
-                const methods = Object.values(PaymentMethod);
-                const currentIndex = methods.indexOf(paymentMethod);
-                const nextIndex = (currentIndex + 1) % methods.length;
-                setPaymentMethod(methods[nextIndex]);
-              }}
+            <select
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+              required
             >
-              <span>{paymentMethod}</span>
-              <ChevronRight size={18} className="text-gray-400" />
-            </button>
+              {Object.values(PaymentMethod).map(method => (
+                <option key={method} value={method}>
+                  {method === PaymentMethod.CASH ? 'Espèces' : 
+                   method === PaymentMethod.CREDIT_CARD ? 'Carte de crédit' :
+                   method === PaymentMethod.DEBIT_CARD ? 'Carte de débit' :
+                   method === PaymentMethod.BANK_TRANSFER ? 'Virement bancaire' :
+                   method === PaymentMethod.MOBILE_PAYMENT ? 'Paiement mobile' : 'Autre'}
+                </option>
+              ))}
+            </select>
           </div>
           
           {/* Description */}
@@ -196,9 +222,10 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
               <input
                 type="text"
                 className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter description"
+                placeholder="Entrer une description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                required
               />
               <button
                 type="button"
@@ -230,7 +257,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
             
             <div className="flex-1">
               <label className="block mb-2 text-sm font-medium text-gray-700">
-                Time
+                Heure
               </label>
               <button
                 type="button"
@@ -250,7 +277,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-gray-700">
-                Recurring Transaction
+                Transaction récurrente
               </label>
               <div className="relative inline-block w-10 mr-2 align-middle select-none">
                 <input
@@ -279,7 +306,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
               <div className="p-3 border rounded-lg bg-gray-50">
                 <div className="flex items-center mb-2">
                   <RefreshCw size={16} className="text-blue-500 mr-2" />
-                  <span className="text-sm font-medium">Repeat Interval</span>
+                  <span className="text-sm font-medium">Intervalle de répétition</span>
                 </div>
                 <div className="flex space-x-2">
                   {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((interval) => (
@@ -293,7 +320,9 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
                       }`}
                       onClick={() => setRecurringInterval(interval)}
                     >
-                      {interval.charAt(0).toUpperCase() + interval.slice(1)}
+                      {interval === 'daily' ? 'Quotidien' :
+                       interval === 'weekly' ? 'Hebdomadaire' :
+                       interval === 'monthly' ? 'Mensuel' : 'Annuel'}
                     </button>
                   ))}
                 </div>
@@ -304,11 +333,11 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
           {/* Notes */}
           <div className="mb-6">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Notes (Optional)
+              Notes (Optionnel)
             </label>
             <textarea
               className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Add notes"
+              placeholder="Ajouter des notes"
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -318,14 +347,14 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
           {/* Receipt Image Upload */}
           <div className="mb-8">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Attach Receipt (Optional)
+              Joindre un reçu (Optionnel)
             </label>
             <button
               type="button"
               className="w-full flex items-center justify-center p-4 border border-dashed rounded-lg text-gray-500"
             >
               <Image size={20} className="mr-2" />
-              <span>Add receipt image</span>
+              <span>Ajouter une image de reçu</span>
             </button>
           </div>
         </div>
@@ -338,7 +367,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
               type === TransactionType.INCOME ? 'bg-green-500' : 'bg-red-500'
             }`}
           >
-            Save {type === TransactionType.INCOME ? 'Income' : 'Expense'}
+            Enregistrer {type === TransactionType.INCOME ? 'le revenu' : 'la dépense'}
           </button>
         </div>
       </form>

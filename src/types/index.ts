@@ -1,7 +1,6 @@
-
 export enum TransactionType {
-  INCOME = "INCOME",
-  EXPENSE = "EXPENSE"
+  INCOME = "income",
+  EXPENSE = "expense"
 }
 
 export enum PaymentMethod {
@@ -26,7 +25,7 @@ export interface Transaction {
   amount: number;
   description: string;
   category: Category;
-  date: Date;
+  date: string;
   paymentMethod: PaymentMethod;
   recurring: boolean;
   recurringInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly';

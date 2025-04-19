@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useFinance, FinanceProvider } from '../context/FinanceContext';
 import { useLocation } from 'react-router-dom';
@@ -30,6 +29,7 @@ import {
   Smartphone
 } from 'lucide-react';
 import AddTransaction from '../components/Transactions/AddTransaction';
+import { formatDate } from '../utils/dateUtils';
 
 // Component that uses the FinanceContext, wrapped in the provider
 const TransactionsContent: React.FC = () => {
@@ -49,7 +49,7 @@ const TransactionsContent: React.FC = () => {
   
   // Sort transactions by date (newest first)
   const sortedTransactions = [...transactions]
-    .sort((a, b) => b.date.getTime() - a.date.getTime());
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
   // Filter transactions by search text
   const filteredTransactions = sortedTransactions.filter(transaction => 
@@ -72,14 +72,6 @@ const TransactionsContent: React.FC = () => {
       default:
         return <Banknote size={16} className="text-gray-500" />;
     }
-  };
-  
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('fr-FR', { 
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
   };
   
   return (

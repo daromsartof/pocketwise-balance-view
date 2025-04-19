@@ -21,6 +21,11 @@ import {
 } from '../data/mockData';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthProvider';
+import { Database } from '../types/supabase';
+
+type DbTransaction = Database['public']['Tables']['transactions']['Row'] & {
+  categories: Database['public']['Tables']['categories']['Row']
+};
 
 interface FinanceContextType {
   // Data
@@ -49,9 +54,9 @@ interface FinanceContextType {
   };
   
   // Actions
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
-  updateTransaction: (transaction: Transaction) => void;
-  deleteTransaction: (id: string) => void;
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  updateTransaction: (id: string, transaction: Partial<Transaction>) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
   addCategory: (category: Omit<Category, 'id'>) => void;
   updateCategory: (category: Category) => void;
   deleteCategory: (id: string) => void;
@@ -84,7 +89,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { session } = useAuth();
   // State initialization
   const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
@@ -147,6 +152,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         remaining,
       };
     });
+    console.log("filteredTransactions ", filteredTransactions);
     
     // Calculate category breakdown for expenses
     const categoryExpenseBreakdown = getCategoryBreakdown(filteredTransactions, TransactionType.EXPENSE);
@@ -190,7 +196,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           name: category.name,
           icon: category.icon,
           color: category.color,
-          type: category.type.toUpperCase() as TransactionType
+          type: category.type.toLowerCase() as TransactionType
         }));
         console.log("formattedCategories ", formattedCategories)
         
@@ -235,7 +241,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsLoadingBudgets(false);
       }
     };
-
+    fetchTransactions();
     fetchBudgets();
   }, [session]);
 
@@ -267,7 +273,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       name: data.name,
       icon: data.icon,
       color: data.color,
-      type: data.type.toUpperCase() as TransactionType
+      type: data.type.toLowerCase() as TransactionType
     };
 
     setCategories(prev => [...prev, newCategory]);
@@ -330,21 +336,158 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
   
   // CRUD operations
-  const addTransaction = (transactionData: Omit<Transaction, 'id'>) => {
+
+  async function fetchTransactions() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(`
+        id,
+        created_at,
+        user_id,
+        amount,
+        description,
+        category_id,
+        date,
+        payment_method,
+        recurring,
+        recurring_interval,
+        notes,
+        receipt_image_url,
+        updated_at,
+        categories!inner (
+          id,
+          name,
+          icon,
+          color,
+          type
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching transactions:', error);
+      return;
+    }
+
+    // Transform the data to match our Transaction interface
+    const transformedData = (data || []).map(transaction => ({
+      id: transaction.id,
+      amount: transaction.amount,
+      description: transaction.description,
+      category: {
+        id: transaction.categories.id,
+        name: transaction.categories.name,
+        icon: transaction.categories.icon,
+        color: transaction.categories.color,
+        type: transaction.categories.type as TransactionType
+      },
+      date: transaction.date,
+      paymentMethod: transaction.payment_method as PaymentMethod,
+      recurring: transaction.recurring,
+      recurringInterval: transaction.recurring_interval as 'daily' | 'weekly' | 'monthly' | 'yearly' | undefined,
+      receiptImage: transaction.receipt_image_url || undefined,
+      notes: transaction.notes || undefined
+    }));
+
+    setTransactions(transformedData);
+  }
+
+  const addTransaction = async (transactionData: Omit<Transaction, 'id'>) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to add transactions');
+      return;
+    }
+
+    const { data, error } = await supabase.from('transactions')
+      .insert({
+        user_id: session.user.id,
+        category_id: transactionData.category.id,
+        amount: transactionData.amount,
+        description: transactionData.description,
+        date: transactionData.date,
+        payment_method: transactionData.paymentMethod,
+        recurring: transactionData.recurring,
+        recurring_interval: transactionData.recurringInterval,
+        notes: transactionData.notes,
+        receipt_image_url: transactionData.receiptImage
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding transaction:', error);
+      return;
+    }
+
     const newTransaction: Transaction = {
-      ...transactionData,
-      id: Date.now().toString(), // Simple ID generation
+      id: data.id,
+      amount: data.amount,
+      description: data.description,
+      category: transactionData.category, // On garde la catégorie complète
+      date: new Date(data.date),
+      paymentMethod: data.payment_method as PaymentMethod,
+      recurring: data.recurring,
+      recurringInterval: data.recurring_interval,
+      notes: data.notes,
+      receiptImage: data.receipt_image_url
     };
+
     setTransactions(prev => [...prev, newTransaction]);
   };
   
-  const updateTransaction = (updatedTransaction: Transaction) => {
+  const updateTransaction = async (updatedTransaction: Transaction) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to update transactions');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('transactions')
+      .update({
+        category_id: updatedTransaction.category.id,
+        amount: updatedTransaction.amount,
+        description: updatedTransaction.description,
+        date: updatedTransaction.date.toISOString(),
+        payment_method: updatedTransaction.paymentMethod,
+        recurring: updatedTransaction.recurring,
+        recurring_interval: updatedTransaction.recurringInterval,
+        notes: updatedTransaction.notes,
+        receipt_image_url: updatedTransaction.receiptImage
+      })
+      .eq('id', updatedTransaction.id)
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Error updating transaction:', error);
+      return;
+    }
+
     setTransactions(prev => 
       prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t)
     );
   };
   
-  const deleteTransaction = (id: string) => {
+  const deleteTransaction = async (id: string) => {
+    if (!session?.user?.id) {
+      console.error('User must be authenticated to delete transactions');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Error deleting transaction:', error);
+      return;
+    }
+    
     setTransactions(prev => prev.filter(t => t.id !== id));
   };
   
