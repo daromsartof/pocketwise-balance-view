@@ -13,8 +13,10 @@ import {
 import { PaymentMethod, TransactionType } from '../../types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface AddTransactionProps {
   type: TransactionType;
@@ -367,14 +369,15 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
         
         {/* Submit Button */}
         <div className="sticky bottom-0 p-4 bg-white border-t">
-          <button
+          <Button
             type="submit"
-            className={`w-full py-3 px-4 rounded-lg text-white font-medium ${
-              type === TransactionType.INCOME ? 'bg-green-500' : 'bg-red-500'
+            variant="default"
+            className={`w-full ${
+              type === TransactionType.INCOME ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
             }`}
           >
             Enregistrer {type === TransactionType.INCOME ? 'le revenu' : 'la dépense'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
