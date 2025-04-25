@@ -9,6 +9,112 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_chat_conversations: {
+        Row: {
+          created_at: string | null
+          date_range_end: string | null
+          date_range_start: string | null
+          id: string
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_range_end?: string | null
+          date_range_start?: string | null
+          id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_range_end?: string | null
+          date_range_start?: string | null
+          id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      ai_chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          sender: Database["public"]["Enums"]["message_sender"]
+        }
+        Insert: {
+          content: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          sender: Database["public"]["Enums"]["message_sender"]
+        }
+        Update: {
+          content?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          sender?: Database["public"]["Enums"]["message_sender"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          period: string
+          start_date: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          period: string
+          start_date: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          period?: string
+          start_date?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           color: string
@@ -42,53 +148,60 @@ export type Database = {
         }
         Relationships: []
       }
-      budgets: {
+      transactions: {
         Row: {
-          id: string
-          user_id: string
-          category_id: string
           amount: number
-          period: 'daily' | 'weekly' | 'monthly' | 'yearly'
-          start_date: string
-          end_date: string | null
-          created_at: string
-          updated_at: string
+          category_id: string | null
+          created_at: string | null
+          date: string
+          description: string
+          id: string
+          notes: string | null
+          payment_method: string
+          receipt_image_url: string | null
+          recurring: boolean | null
+          recurring_interval: string | null
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
-          id?: string
-          user_id: string
-          category_id: string
           amount: number
-          period: 'daily' | 'weekly' | 'monthly' | 'yearly'
-          start_date: string
-          end_date?: string | null
-          created_at?: string
-          updated_at?: string
+          category_id?: string | null
+          created_at?: string | null
+          date: string
+          description: string
+          id?: string
+          notes?: string | null
+          payment_method: string
+          receipt_image_url?: string | null
+          recurring?: boolean | null
+          recurring_interval?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          user_id?: string
-          category_id?: string
           amount?: number
-          period?: 'daily' | 'weekly' | 'monthly' | 'yearly'
-          start_date?: string
-          end_date?: string | null
-          created_at?: string
-          updated_at?: string
+          category_id?: string | null
+          created_at?: string | null
+          date?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          receipt_image_url?: string | null
+          recurring?: boolean | null
+          recurring_interval?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "budgets_category_id_fkey"
+            foreignKeyName: "transactions_category_id_fkey"
             columns: ["category_id"]
+            isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "budgets_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
         ]
       }
     }
@@ -99,7 +212,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      message_sender: "user" | "ai"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -214,6 +327,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      message_sender: ["user", "ai"],
+    },
   },
 } as const

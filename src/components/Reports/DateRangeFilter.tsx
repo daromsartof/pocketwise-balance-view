@@ -6,6 +6,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, addMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, subMonths, subDays, subWeeks } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { CalendarIcon, ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DateRangeFilterProps {
   currentRange: { startDate: Date; endDate: Date };
@@ -85,6 +86,8 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ currentRange, onRange
       from: range.startDate,
       to: range.endDate
     });
+    // Close the popover after selection
+    setIsCalendarOpen(false);
   };
 
   const handleCalendarSelect = (range: DateRange | undefined) => {
@@ -102,29 +105,6 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ currentRange, onRange
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 mt-2 md:mt-0">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2">
-            <span>Range</span>
-            <ChevronDown size={14} />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-2" align="end">
-          <div className="grid gap-1">
-            {predefinedRanges.map((range) => (
-              <Button
-                key={range.label}
-                variant="ghost"
-                className="justify-start font-normal"
-                onClick={() => handleRangeSelect(range.getValue())}
-              >
-                {range.label}
-              </Button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover>
-
       <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="flex items-center gap-2">
@@ -152,7 +132,31 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ currentRange, onRange
             selected={date}
             onSelect={handleCalendarSelect}
             numberOfMonths={2}
+            className={cn("p-3 pointer-events-auto")}
           />
+        </PopoverContent>
+      </Popover>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="flex items-center gap-2">
+            <span>Range</span>
+            <ChevronDown size={14} />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-2" align="end">
+          <div className="grid gap-1">
+            {predefinedRanges.map((range) => (
+              <Button
+                key={range.label}
+                variant="ghost"
+                className="justify-start font-normal"
+                onClick={() => handleRangeSelect(range.getValue())}
+              >
+                {range.label}
+              </Button>
+            ))}
+          </div>
         </PopoverContent>
       </Popover>
     </div>

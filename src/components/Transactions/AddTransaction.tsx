@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { 
   ArrowLeft, 
-  Calendar, 
+  Calendar as CalendarIcon, 
   Clock, 
   Image, 
   Mic,
@@ -10,6 +11,10 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { PaymentMethod, TransactionType } from '../../types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface AddTransactionProps {
   type: TransactionType;
@@ -22,15 +27,19 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [notes, setNotes] = useState('');
   const [recurring, setRecurring] = useState(false);
   const [recurringInterval, setRecurringInterval] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
-    console.log("type ", type)
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isTimePopoverOpen, setIsTimePopoverOpen] = useState(false);
+  const [selectedTime, setSelectedTime] = useState<string>(
+    format(new Date(), 'HH:mm')
+  );
     
   // Filter categories by type
   const filteredCategories = categories.filter(c => c.type === type);
-  console.log("filteredCategories ", filteredCategories)
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -40,29 +49,22 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
     }
     
     const selectedCategory = categories.find(c => c.id === categoryId);
-    console.log("selectedCategory ", selectedCategory)
     if (!selectedCategory) {
       alert('Catégorie non trouvée');
       return;
     }
     
     try {
-    console.log({
-    amount: parseFloat(amount),
-        description,
-        category_id: categoryId,
-        date,
-        paymentMethod,
-        recurring,
-        recurringInterval: recurring ? recurringInterval : undefined,
-        notes: notes || undefined,
-        receiptImage: undefined})
-    
+      // Combine date and time
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      const transactionDate = new Date(selectedDate);
+      transactionDate.setHours(hours, minutes, 0, 0);
+      
       await addTransaction({
         amount: parseFloat(amount),
         description,
         category: selectedCategory,
-        date: new Date(date).toISOString(),
+        date: transactionDate.toISOString(),
         paymentMethod,
         recurring,
         recurringInterval: recurring ? recurringInterval : undefined,
@@ -77,8 +79,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
     }
   };
   
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDateDisplay = (date: Date) => {
     return date.toLocaleDateString('fr-FR', { 
       year: 'numeric', 
       month: 'long', 
@@ -86,42 +87,8 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
     });
   };
   
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('fr-FR', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: false
-    });
-  };
-  
-  const handleDateSelect = () => {
-    const input = document.createElement('input');
-    input.type = 'date';
-    input.value = date;
-    input.onchange = (e) => {
-      const target = e.target as HTMLInputElement;
-      setDate(target.value);
-    };
-    input.click();
-  };
-  
-  const handleTimeSelect = () => {
-    const input = document.createElement('input');
-    input.type = 'time';
-    input.value = new Date(date).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-    input.onchange = (e) => {
-      const target = e.target as HTMLInputElement;
-      const [hours, minutes] = target.value.split(':');
-      const newDate = new Date(date);
-      newDate.setHours(parseInt(hours), parseInt(minutes));
-      setDate(newDate.toISOString().split('T')[0]);
-    };
-    input.click();
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedTime(e.target.value);
   };
   
   return (
@@ -242,34 +209,73 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ type, onClose }) => {
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 Date
               </label>
-              <button
-                type="button"
-                className="w-full flex items-center justify-between p-3 border rounded-lg"
-                onClick={handleDateSelect}
-              >
-                <div className="flex items-center">
-                  <Calendar size={18} className="text-gray-500 mr-2" />
-                  <span>{formatDate(date)}</span>
-                </div>
-                <ChevronRight size={18} className="text-gray-400" />
-              </button>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex items-center">
+                      <CalendarIcon size={18} className="text-gray-500 mr-2" />
+                      <span>{formatDateDisplay(selectedDate)}</span>
+                    </div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(date);
+                        setIsCalendarOpen(false);
+                      }
+                    }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             
             <div className="flex-1">
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 Heure
               </label>
-              <button
-                type="button"
-                className="w-full flex items-center justify-between p-3 border rounded-lg"
-                onClick={handleTimeSelect}
-              >
-                <div className="flex items-center">
-                  <Clock size={18} className="text-gray-500 mr-2" />
-                  <span>{formatTime(date)}</span>
-                </div>
-                <ChevronRight size={18} className="text-gray-400" />
-              </button>
+              <Popover open={isTimePopoverOpen} onOpenChange={setIsTimePopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex items-center">
+                      <Clock size={18} className="text-gray-500 mr-2" />
+                      <span>{selectedTime}</span>
+                    </div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-4" align="start">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-gray-700">Sélectionner l'heure</label>
+                    <input
+                      type="time"
+                      className="p-2 border rounded-lg"
+                      value={selectedTime}
+                      onChange={handleTimeChange}
+                    />
+                    <Button 
+                      type="button"
+                      className="mt-2"
+                      variant="default"
+                      onClick={() => setIsTimePopoverOpen(false)}
+                    >
+                      Confirmer
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           

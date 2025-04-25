@@ -1,17 +1,23 @@
+
+import { format as formatDate, parseISO } from 'date-fns';
+import { fr } from 'date-fns/locale';
+
 export const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('fr-FR', { 
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  try {
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    return formatDate(date, 'dd/MM/yyyy', { locale: fr });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '-- / -- / ----';
+  }
 };
 
 export const formatDateTime = (dateString: string) => {
-  return new Date(dateString).toLocaleString('fr-FR', { 
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  try {
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    return formatDate(date, 'dd/MM/yyyy HH:mm', { locale: fr });
+  } catch (error) {
+    console.error('Error formatting datetime:', error);
+    return '-- / -- / ---- --:--';
+  }
 }; 
