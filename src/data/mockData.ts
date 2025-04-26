@@ -1,45 +1,147 @@
+import {
+  Account,
+  Budget,
+  Category,
+  PaymentMethod,
+  Transaction,
+  TransactionType,
+} from "../types"
 
-import { Account, Budget, Category, PaymentMethod, Transaction, TransactionType } from "../types";
-
-const today = new Date();
-const currentMonth = today.getMonth();
-const currentYear = today.getFullYear();
+const today = new Date()
+const currentMonth = today.getMonth()
+const currentYear = today.getFullYear()
 
 // Create a date with specific day in current month
 const dateInCurrentMonth = (day: number) => {
-  return new Date(currentYear, currentMonth, day);
-};
+  return new Date(currentYear, currentMonth, day)
+}
 
 // Expense Categories
 export const expenseCategories: Category[] = [
-  { id: "1", name: "Food & Drinks", icon: "utensils", color: "#FF5252", type: TransactionType.EXPENSE },
-  { id: "2", name: "Shopping", icon: "shopping-cart", color: "#FF9800", type: TransactionType.EXPENSE },
-  { id: "3", name: "Housing", icon: "home", color: "#9C27B0", type: TransactionType.EXPENSE },
-  { id: "4", name: "Transportation", icon: "car", color: "#03A9F4", type: TransactionType.EXPENSE },
-  { id: "5", name: "Entertainment", icon: "film", color: "#E91E63", type: TransactionType.EXPENSE },
-  { id: "6", name: "Health", icon: "medical-services", color: "#00BCD4", type: TransactionType.EXPENSE },
-  { id: "7", name: "Personal Care", icon: "self-care", color: "#8BC34A", type: TransactionType.EXPENSE },
-  { id: "8", name: "Education", icon: "school", color: "#3F51B5", type: TransactionType.EXPENSE },
-  { id: "9", name: "Pets", icon: "pets", color: "#795548", type: TransactionType.EXPENSE },
-  { id: "10", name: "Insurance", icon: "shield", color: "#607D8B", type: TransactionType.EXPENSE },
-];
+  {
+    id: "1",
+    name: "Food & Drinks",
+    icon: "utensils",
+    color: "#FF5252",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "2",
+    name: "Shopping",
+    icon: "shopping-cart",
+    color: "#FF9800",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "3",
+    name: "Housing",
+    icon: "home",
+    color: "#9C27B0",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "4",
+    name: "Transportation",
+    icon: "car",
+    color: "#03A9F4",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "5",
+    name: "Entertainment",
+    icon: "film",
+    color: "#E91E63",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "6",
+    name: "Health",
+    icon: "medical-services",
+    color: "#00BCD4",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "7",
+    name: "Personal Care",
+    icon: "self-care",
+    color: "#8BC34A",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "8",
+    name: "Education",
+    icon: "school",
+    color: "#3F51B5",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "9",
+    name: "Pets",
+    icon: "pets",
+    color: "#795548",
+    type: TransactionType.EXPENSE,
+  },
+  {
+    id: "10",
+    name: "Insurance",
+    icon: "shield",
+    color: "#607D8B",
+    type: TransactionType.EXPENSE,
+  },
+]
 
 // Income Categories
 export const incomeCategories: Category[] = [
-  { id: "11", name: "Salary", icon: "wallet", color: "#4CAF50", type: TransactionType.INCOME },
-  { id: "12", name: "Freelance", icon: "briefcase", color: "#8BC34A", type: TransactionType.INCOME },
-  { id: "13", name: "Investments", icon: "trending-up", color: "#009688", type: TransactionType.INCOME },
-  { id: "14", name: "Gifts", icon: "gift", color: "#FFC107", type: TransactionType.INCOME },
-];
+  {
+    id: "11",
+    name: "Salary",
+    icon: "wallet",
+    color: "#4CAF50",
+    type: TransactionType.INCOME,
+  },
+  {
+    id: "12",
+    name: "Freelance",
+    icon: "briefcase",
+    color: "#8BC34A",
+    type: TransactionType.INCOME,
+  },
+  {
+    id: "13",
+    name: "Investments",
+    icon: "trending-up",
+    color: "#009688",
+    type: TransactionType.INCOME,
+  },
+  {
+    id: "14",
+    name: "Gifts",
+    icon: "gift",
+    color: "#FFC107",
+    type: TransactionType.INCOME,
+  },
+]
 
-export const categories = [...expenseCategories, ...incomeCategories];
+export const categories = [...expenseCategories, ...incomeCategories]
 
 // Accounts
 export const accounts: Account[] = [
-  { id: "1", name: "Cash", balance: 2500, currency: "USD", color: "#4CAF50" },
-  { id: "2", name: "Bank Account", balance: 7800, currency: "USD", color: "#2196F3" },
-  { id: "3", name: "Credit Card", balance: -350, currency: "USD", color: "#F44336" },
-];
+  { id: "1", name: "Cash", balance: 0, currency: "USD", color: "#4CAF50" },
+  {
+    id: "2",
+    name: "Bank Account",
+    balance: 0,
+    currency: "USD",
+    color: "#2196F3",
+  },
+  {
+    id: "3",
+    name: "Credit Card",
+    balance: 0,
+    currency: "USD",
+    color: "#F44336",
+  },
+]
 
 // Transactions
 export const transactions: Transaction[] = [
@@ -90,7 +192,7 @@ export const transactions: Transaction[] = [
     date: dateInCurrentMonth(6),
     paymentMethod: PaymentMethod.CREDIT_CARD,
     recurring: false,
-    notes: "Weekly shopping"
+    notes: "Weekly shopping",
   },
   {
     id: "6",
@@ -173,7 +275,7 @@ export const transactions: Transaction[] = [
     paymentMethod: PaymentMethod.CASH,
     recurring: false,
   },
-];
+]
 
 // Budgets
 export const budgets: Budget[] = [
@@ -212,115 +314,144 @@ export const budgets: Budget[] = [
     period: "monthly",
     startDate: new Date(currentYear, currentMonth, 1),
   },
-];
+]
 
 // Helper functions
 export const calculateTotalIncome = (transactions: Transaction[]): number => {
   return transactions
-    .filter(t => t.category.type === TransactionType.INCOME)
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-};
+    .filter((t) => t.category.type === TransactionType.INCOME)
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
+}
 
 export const calculateTotalExpense = (transactions: Transaction[]): number => {
   return transactions
-    .filter(t => t.category.type === TransactionType.EXPENSE)
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-};
+    .filter((t) => t.category.type === TransactionType.EXPENSE)
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
+}
 
 export const calculateBalance = (transactions: Transaction[]): number => {
-  return calculateTotalIncome(transactions) - calculateTotalExpense(transactions);
-};
+  return (
+    calculateTotalIncome(transactions) - calculateTotalExpense(transactions)
+  )
+}
 
-export const getCategoryExpenses = (transactions: Transaction[], categoryId: string): number => {
+export const getCategoryExpenses = (
+  transactions: Transaction[],
+  categoryId: string
+): number => {
   return transactions
-    .filter(t => t.category.id === categoryId)
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-};
+    .filter((t) => t.category.id === categoryId)
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
+}
 
 export const getFilteredTransactions = (
   transactions: Transaction[],
   filters: {
-    startDate?: Date;
-    endDate?: Date;
-    categoryIds?: string[];
-    paymentMethods?: PaymentMethod[];
-    type?: TransactionType;
-    searchText?: string;
-    minAmount?: number;
-    maxAmount?: number;
+    startDate?: Date
+    endDate?: Date
+    categoryIds?: string[]
+    paymentMethods?: PaymentMethod[]
+    type?: TransactionType
+    searchText?: string
+    minAmount?: number
+    maxAmount?: number
   }
 ): Transaction[] => {
-  return transactions.filter(transaction => {
+  return transactions.filter((transaction) => {
     // Date filter
-    if (filters.startDate && transaction.date < filters.startDate) return false;
-    if (filters.endDate && transaction.date > filters.endDate) return false;
-    
+    if (filters.startDate && transaction.date < filters.startDate) return false
+    if (filters.endDate && transaction.date > filters.endDate) return false
+
     // Category filter
     if (filters.categoryIds && filters.categoryIds.length > 0) {
-      if (!filters.categoryIds.includes(transaction.category.id)) return false;
+      if (!filters.categoryIds.includes(transaction.category.id)) return false
     }
-    
+
     // Payment method filter
     if (filters.paymentMethods && filters.paymentMethods.length > 0) {
-      if (!filters.paymentMethods.includes(transaction.paymentMethod)) return false;
+      if (!filters.paymentMethods.includes(transaction.paymentMethod))
+        return false
     }
-    
+
     // Transaction type filter
-    if (filters.type && transaction.category.type !== filters.type) return false;
-    
+    if (filters.type && transaction.category.type !== filters.type) return false
+
     // Search text filter
     if (filters.searchText) {
-      const searchLower = filters.searchText.toLowerCase();
-      const descriptionMatch = transaction.description.toLowerCase().includes(searchLower);
-      const notesMatch = transaction.notes ? transaction.notes.toLowerCase().includes(searchLower) : false;
-      if (!descriptionMatch && !notesMatch) return false;
+      const searchLower = filters.searchText.toLowerCase()
+      const descriptionMatch = transaction.description
+        .toLowerCase()
+        .includes(searchLower)
+      const notesMatch = transaction.notes
+        ? transaction.notes.toLowerCase().includes(searchLower)
+        : false
+      if (!descriptionMatch && !notesMatch) return false
     }
-    
+
     // Amount range filter
-    if (filters.minAmount !== undefined && transaction.amount < filters.minAmount) return false;
-    if (filters.maxAmount !== undefined && transaction.amount > filters.maxAmount) return false;
-    
-    return true;
-  });
-};
+    if (
+      filters.minAmount !== undefined &&
+      transaction.amount < filters.minAmount
+    )
+      return false
+    if (
+      filters.maxAmount !== undefined &&
+      transaction.amount > filters.maxAmount
+    )
+      return false
 
-export const getBudgetStatus = (budget: Budget, transactions: Transaction[]): { spent: number; remaining: number; percentage: number } => {
+    return true
+  })
+}
+
+export const getBudgetStatus = (
+  budget: Budget,
+  transactions: Transaction[]
+): { spent: number; remaining: number; percentage: number } => {
   const spent = transactions
-    .filter(t => t.category.id === budget.categoryId &&
-      t.date >= budget.startDate &&
-      (budget.endDate ? t.date <= budget.endDate : true))
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const remaining = budget.amount - spent;
-  const percentage = (spent / budget.amount) * 100;
-  
-  return { spent, remaining, percentage };
-};
+    .filter(
+      (t) =>
+        t.category.id === budget.categoryId &&
+        t.date >= budget.startDate &&
+        (budget.endDate ? t.date <= budget.endDate : true)
+    )
+    .reduce((sum, t) => sum + t.amount, 0)
 
-export const getCategoryBreakdown = (transactions: Transaction[], type: TransactionType): { category: Category; amount: number; percentage: number }[] => {
-  const filteredTransactions = transactions.filter(t => t.category.type === type);
-  const total = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
-  
+  const remaining = budget.amount - spent
+  const percentage = (spent / budget.amount) * 100
+
+  return { spent, remaining, percentage }
+}
+
+export const getCategoryBreakdown = (
+  transactions: Transaction[],
+  type: TransactionType
+): { category: Category; amount: number; percentage: number }[] => {
+  const filteredTransactions = transactions.filter(
+    (t) => t.category.type === type
+  )
+  const total = filteredTransactions.reduce((sum, t) => sum + t.amount, 0)
+
   // Group by category
-  const categoryMap = new Map<string, { category: Category; amount: number }>();
-  
-  filteredTransactions.forEach(transaction => {
-    const { category, amount } = transaction;
-    
+  const categoryMap = new Map<string, { category: Category; amount: number }>()
+
+  filteredTransactions.forEach((transaction) => {
+    const { category, amount } = transaction
+
     if (categoryMap.has(category.id)) {
-      const existing = categoryMap.get(category.id)!;
-      existing.amount += amount;
-      categoryMap.set(category.id, existing);
+      const existing = categoryMap.get(category.id)!
+      existing.amount += amount
+      categoryMap.set(category.id, existing)
     } else {
-      categoryMap.set(category.id, { category, amount });
+      categoryMap.set(category.id, { category, amount })
     }
-  });
-  
+  })
+
   // Convert to array and calculate percentages
   return Array.from(categoryMap.values())
-    .map(item => ({
+    .map((item) => ({
       ...item,
-      percentage: total > 0 ? (item.amount / total) * 100 : 0
+      percentage: total > 0 ? (item.amount / total) * 100 : 0,
     }))
-    .sort((a, b) => b.amount - a.amount);
-};
+    .sort((a, b) => b.amount - a.amount)
+}
